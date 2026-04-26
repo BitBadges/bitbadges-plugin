@@ -1,35 +1,53 @@
 # BitBadges Plugin for Claude Code
 
-A Claude Code plugin that auto-wires the BitBadges builder MCP server and ships curated skills for token creation, review, simulation, and on-chain queries.
+A Claude Code plugin that auto-wires the BitBadges builder MCP server and teaches Claude how to leverage the BitBadges CLI + docs to build, review, simulate, and query tokens.
 
-## Install
+The plugin is a thin **harness on top of the CLI**. It does not redefine token types or duplicate skill content — every workflow ultimately routes to `bitbadges-cli` commands, the `bitbadges-builder` MCP, or the public docs at https://docs.bitbadges.io. Source of truth stays in the SDK; the plugin just makes Claude reach for the right tool at the right time.
+
+## Prerequisites
+
+The BitBadges chain binary + CLI are the canonical way to interact with BitBadges. Install them first:
+
+```sh
+curl -fsSL https://install.bitbadges.io | sh
+```
+
+This installs `bitbadgeschaind` (the chain binary) and `bitbadges-cli` (the JS CLI that exposes 104+ API routes plus the `bitbadges-builder` MCP server). This plugin is a Claude Code convenience layer on top of those — it does not replace them.
+
+Get an API key at [bitbadges.io/developer](https://bitbadges.io/developer) and configure it once:
+
+```sh
+bitbadges-cli config set apiKey YOUR_KEY
+```
+
+## Install the plugin
+
+After the prerequisites above:
 
 ```
 /plugin marketplace add BitBadges/bitbadges-plugin
 /plugin install bitbadges
 ```
 
-That's it. After install, you have:
+Then run `/bitbadges:setup` once to verify everything is wired and `/bitbadges:status` whenever you want a health check.
 
-- **MCP tools** — `bitbadges-builder` registered automatically (no `claude mcp add` step).
-- **~29 skills** — token creation (smart-token, fungible, NFT, subscription, vault, claim, quest, auction, …), review, simulate, explain, query, address, broadcast.
-- **2 slash commands** — `/bitbadges:setup` and `/bitbadges:status`.
+## What the plugin adds
 
-The plugin uses `npx -y -p bitbadges bitbadges-builder` under the hood, so the latest published `bitbadges` npm package is fetched on first use. No separate install of the JS CLI is required.
+- **MCP tools** — `bitbadges-builder` registered automatically (no separate `claude mcp add` step). Exposes 50+ session-based per-field token construction tools, queries, validation, review, and simulation.
+- **8 skills** — guides that route Claude to the right CLI command, MCP tool, or docs page for each common BitBadges workflow:
+  - `build` — meta-guide for building any token type. Discovers via `bitbadges-cli sdk skills`, loads canonical instructions from the SDK, constructs via per-field MCP tools.
+  - `review`, `simulate`, `explain` — pre-broadcast safety net. Wraps `bitbadges-cli sdk review`, MCP `simulate_transaction`, and `bitbadges-cli sdk interpret-collection`.
+  - `query`, `address`, `claim` — runtime ops. Wraps the API routes, address derivations, and claim builder respectively.
+  - `broadcast` — hard-railed signer. Dry-run by default, explicit confirmation for live.
+- **2 slash commands** — `/bitbadges:setup` (one-time prereq check + API key wiring) and `/bitbadges:status` (health check).
+- **`bitbadges-builder` subagent** for focused builder loops.
+- **SessionStart pre-warm** so the first MCP-tool call doesn't pay npx download latency.
 
-## What you can do without setup
+The skills don't duplicate token-type knowledge from the SDK. They tell Claude *where* to find that knowledge (CLI / MCP / Gitbook) and *how* to combine it. The full Gitbook docs at https://docs.bitbadges.io are also fair game — fetch what you need.
 
-The MCP server alone covers the vast majority of CC workflows: build a token, review a transaction, simulate a broadcast, query a collection, derive an address. None of these need the chain binary.
+## Fallback behavior
 
-## What needs `/bitbadges:setup`
-
-Local key management and live transaction broadcasts use the `bitbadgeschaind` chain binary, which is a separate Go binary. Run:
-
-```
-/bitbadges:setup
-```
-
-This walks through installing `bitbadgeschaind` via `https://install.bitbadges.io` (with consent prompt — never auto-pipes to sh) and configures your API key.
+If `bitbadges-cli` and `bitbadges-builder` aren't on your PATH (because you skipped the prerequisites), the plugin falls back to `npx -y -p bitbadges bitbadges-builder` for the MCP server. This works for read-only LLM workflows but is a degraded path — a globally installed CLI is faster, more reliable, and what `/bitbadges:setup` will recommend.
 
 ## API key
 
