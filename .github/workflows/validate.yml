@@ -1,0 +1,44 @@
+name: Validate plugin
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  validate-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate plugin.json is valid JSON
+        run: jq -e . .claude-plugin/plugin.json > /dev/null
+
+      - name: Validate .mcp.json is valid JSON
+        run: jq -e . .mcp.json > /dev/null
+
+      - name: Check required manifest fields
+        run: |
+          jq -e '.name and .version and .description' .claude-plugin/plugin.json > /dev/null
+          echo "Manifest has required fields"
+
+      - name: Check skill frontmatter
+        run: |
+          set -e
+          missing=0
+          for f in $(find skills -name SKILL.md 2>/dev/null); do
+            if ! head -1 "$f" | grep -q '^---$'; then
+              echo "Missing frontmatter: $f"
+              missing=$((missing + 1))
+            fi
+            if ! grep -q '^description:' "$f"; then
+              echo "Missing description: $f"
+              missing=$((missing + 1))
+            fi
+          done
+          if [ "$missing" -gt 0 ]; then
+            echo "$missing skill(s) failed frontmatter check"
+            exit 1
+          fi
+          echo "All skills have frontmatter"

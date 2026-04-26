@@ -1,0 +1,14 @@
+{
+  "name": "bitbadges",
+  "version": "0.1.0",
+  "description": "BitBadges builder skills for Claude Code. Auto-wires the bitbadges-builder MCP server and ships curated skills for token creation, review, simulation, and on-chain queries.",
+  "author": {
+    "name": "BitBadges",
+    "email": "support@bitbadges.io",
+    "url": "https://bitbadges.io"
+  },
+  "homepage": "https://docs.bitbadges.io/for-developers/ai-agents",
+  "repository": "https://github.com/BitBadges/bitbadges-plugin",
+  "license": "CC-BY-NC-SA-4.0",
+  "keywords": ["bitbadges", "blockchain", "cosmos", "tokens", "nft", "smart-token", "mcp", "ai-agents"]
+}
