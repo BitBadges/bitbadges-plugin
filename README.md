@@ -1,6 +1,8 @@
 # BitBadges Plugin for Claude Code
 
-A Claude Code plugin that auto-wires the BitBadges builder MCP server and ships curated skills for token creation, review, simulation, and on-chain queries.
+A Claude Code plugin that auto-wires the BitBadges builder MCP server and teaches Claude how to leverage the BitBadges CLI + docs to build, review, simulate, and query tokens.
+
+The plugin is a thin **harness on top of the CLI**. It does not redefine token types or duplicate skill content — every workflow ultimately routes to `bitbadges-cli` commands, the `bitbadges-builder` MCP, or the public docs at https://docs.bitbadges.io. Source of truth stays in the SDK; the plugin just makes Claude reach for the right tool at the right time.
 
 ## Prerequisites
 
@@ -31,11 +33,17 @@ Then run `/bitbadges:setup` once to verify everything is wired and `/bitbadges:s
 
 ## What the plugin adds
 
-- **MCP tools** — `bitbadges-builder` registered automatically (no separate `claude mcp add` step).
-- **~29 skills** — token creation (smart-token, fungible, NFT, subscription, vault, claim, quest, auction, …), review, simulate, explain, query, address, broadcast.
-- **2 slash commands** — `/bitbadges:setup` and `/bitbadges:status`.
+- **MCP tools** — `bitbadges-builder` registered automatically (no separate `claude mcp add` step). Exposes 50+ session-based per-field token construction tools, queries, validation, review, and simulation.
+- **8 skills** — guides that route Claude to the right CLI command, MCP tool, or docs page for each common BitBadges workflow:
+  - `build` — meta-guide for building any token type. Discovers via `bitbadges-cli sdk skills`, loads canonical instructions from the SDK, constructs via per-field MCP tools.
+  - `review`, `simulate`, `explain` — pre-broadcast safety net. Wraps `bitbadges-cli sdk review`, MCP `simulate_transaction`, and `bitbadges-cli sdk interpret-collection`.
+  - `query`, `address`, `claim` — runtime ops. Wraps the API routes, address derivations, and claim builder respectively.
+  - `broadcast` — hard-railed signer. Dry-run by default, explicit confirmation for live.
+- **2 slash commands** — `/bitbadges:setup` (one-time prereq check + API key wiring) and `/bitbadges:status` (health check).
 - **`bitbadges-builder` subagent** for focused builder loops.
 - **SessionStart pre-warm** so the first MCP-tool call doesn't pay npx download latency.
+
+The skills don't duplicate token-type knowledge from the SDK. They tell Claude *where* to find that knowledge (CLI / MCP / Gitbook) and *how* to combine it. The full Gitbook docs at https://docs.bitbadges.io are also fair game — fetch what you need.
 
 ## Fallback behavior
 
