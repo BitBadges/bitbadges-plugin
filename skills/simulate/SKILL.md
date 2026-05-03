@@ -21,13 +21,13 @@ Call the `simulate_transaction` MCP tool with the transaction object.
 **Via CLI:**
 
 ```bash
-bitbadges-cli builder simulate @<path-to-tx.json>
+bitbadges-cli simulate @<path-to-tx.json>
 ```
 
 Or pipe a transaction via stdin:
 
 ```bash
-cat tx.json | bitbadges-cli builder simulate -
+cat tx.json | bitbadges-cli simulate -
 ```
 
 ## What good output looks like

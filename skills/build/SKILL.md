@@ -6,13 +6,13 @@ description: Build any kind of BitBadges token (smart-token, fungible, NFT, subs
 
 Use this skill any time the user wants to create a BitBadges collection or token of any kind. **Don't make up token-type-specific knowledge from training data** — the SDK changes constantly. Instead, discover and load the canonical instructions, then construct via the per-field MCP tools.
 
-The plugin does not redefine token types here. They live in the SDK and are surfaced through the CLI's `sdk skills` command, the MCP's `get_skill_instructions` tool, and the Gitbook pages. This skill teaches Claude to use those.
+The plugin does not redefine token types here. They live in the SDK and are surfaced through the CLI's `skills` command, the MCP's `get_skill_instructions` tool, and the Gitbook pages. This skill teaches Claude to use those.
 
 ## Step 1 — Discover the available token type
 
 ```sh
-bitbadges-cli sdk skills              # list every available skill (id, name, category, description)
-bitbadges-cli sdk skills <id>          # load the canonical instructions for one skill
+bitbadges-cli skills              # list every available skill (id, name, category, description)
+bitbadges-cli skills <id>          # load the canonical instructions for one skill
 ```
 
 If the user describes their goal but doesn't name a token type, list the catalog first and pick by category. Categories: `token-type`, `standard`, `approval`, `feature`, `advanced`.
@@ -24,7 +24,7 @@ Web reference: every skill is also rendered at `https://docs.bitbadges.io/x-toke
 The instructions are the source of truth — required fields, approval ordering, foot-guns, reference collection IDs. Load them, don't reconstruct them:
 
 - **MCP (preferred in Claude Code):** call `get_skill_instructions` with `id: "<skill-id>"`.
-- **CLI:** `bitbadges-cli sdk skills <id>`
+- **CLI:** `bitbadges-cli skills <id>`
 - **Web docs:** `https://docs.bitbadges.io/x-tokenization/examples/skills/<id>`
 
 ## Step 3 — Construct the transaction
@@ -47,11 +47,11 @@ Only then route to the `broadcast` skill, which has its own hard rails.
 
 ## Going deeper
 
-The CLI's `sdk docs` command surfaces the full Gitbook docs from your terminal. Use it when a skill instruction references a concept you need to look up:
+The CLI's `docs` command surfaces the full Gitbook docs from your terminal. Use it when a skill instruction references a concept you need to look up:
 
 ```sh
-bitbadges-cli sdk docs all                # dump the entire docs corpus
-bitbadges-cli sdk docs <slug>             # specific page, e.g. learn/approvals
+bitbadges-cli docs all                # dump the entire docs corpus
+bitbadges-cli docs <slug>             # specific page, e.g. learn/approvals
 ```
 
 You also have full access to the public docs at `https://docs.bitbadges.io` if you need to fetch a page directly. Fetch only what you need; don't dump entire sections into the context for fun.

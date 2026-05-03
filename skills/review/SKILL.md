@@ -17,7 +17,13 @@ Use this skill any time the user has built a BitBadges transaction or wants a se
 **Transaction file review (input is a path):**
 
 ```bash
-bitbadges-cli sdk review @<path-to-tx.json>
+bitbadges-cli check @<path-to-tx.json> --depth review
+```
+
+Or run the full pass (validate + review + metadata, the default depth):
+
+```bash
+bitbadges-cli check @<path-to-tx.json>
 ```
 
 The CLI accepts `@file.json` syntax for path inputs. JSON output includes parsed warnings, errors, and suggestions.

@@ -10,7 +10,7 @@ A one-shot diagnostic. Runs `${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh` and report
 - `bitbadgeschaind` version (or "not installed").
 - `bitbadges-cli` version (resolved via `npx bitbadges --version`).
 - Active network (mainnet / testnet / local).
-- API connectivity (`bitbadges-cli sdk status`).
+- API connectivity (`bitbadges-cli doctor`).
 - API key configured (yes/no, masked).
 - MCP server `bitbadges-builder` is reachable.
 
