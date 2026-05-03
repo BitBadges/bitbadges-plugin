@@ -62,9 +62,9 @@ network="${network:-mainnet}"
 api_status="skipped (no CLI)"
 if [ -n "$cli_path" ] && [ "$api_key_set" = "yes" ]; then
   if [ "$cli_path" = "(via npx)" ]; then
-    api_status="$(npx -y -p bitbadges bitbadges sdk status 2>&1 | tail -1 || echo error)"
+    api_status="$(npx -y -p bitbadges bitbadges doctor 2>&1 | tail -1 || echo error)"
   else
-    api_status="$(bitbadges-cli sdk status 2>&1 | tail -1 || echo error)"
+    api_status="$(bitbadges-cli doctor 2>&1 | tail -1 || echo error)"
   fi
 fi
 

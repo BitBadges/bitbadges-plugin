@@ -8,11 +8,7 @@ A BitBadges "claim" is a redemption page where users (gated however the manager 
 
 ## Build
 
-Use the `build_claim` MCP tool with the desired plugins (gating modes) and approval target. CLI fallback for offline preview:
-
-```bash
-bitbadges-cli builder claim build --plugins <p1>,<p2> --target <approval-id>
-```
+Use the `build_claim` MCP tool with the desired plugins (gating modes) and approval target. There is no CLI builder for claims today — use the MCP tool path or compose the JSON directly.
 
 ## Common gating modes (plugins)
 

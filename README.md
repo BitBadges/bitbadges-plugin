@@ -35,8 +35,8 @@ Then run `/bitbadges:setup` once to verify everything is wired and `/bitbadges:s
 
 - **MCP tools** — `bitbadges-builder` registered automatically (no separate `claude mcp add` step). Exposes 50+ session-based per-field token construction tools, queries, validation, review, and simulation.
 - **8 skills** — guides that route Claude to the right CLI command, MCP tool, or docs page for each common BitBadges workflow:
-  - `build` — meta-guide for building any token type. Discovers via `bitbadges-cli sdk skills`, loads canonical instructions from the SDK, constructs via per-field MCP tools.
-  - `review`, `simulate`, `explain` — pre-broadcast safety net. Wraps `bitbadges-cli sdk review`, MCP `simulate_transaction`, and `bitbadges-cli sdk interpret-collection`.
+  - `build` — meta-guide for building any token type. Discovers via `bitbadges-cli skills`, loads canonical instructions from the SDK, constructs via per-field MCP tools.
+  - `review`, `simulate`, `explain` — pre-broadcast safety net. Wraps `bitbadges-cli check`, MCP `simulate_transaction`, and `bitbadges-cli explain`.
   - `query`, `address`, `claim` — runtime ops. Wraps the API routes, address derivations, and claim builder respectively.
   - `broadcast` — hard-railed signer. Dry-run by default, explicit confirmation for live.
 - **2 slash commands** — `/bitbadges:setup` (one-time prereq check + API key wiring) and `/bitbadges:status` (health check).
