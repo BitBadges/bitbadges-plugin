@@ -38,7 +38,7 @@ Then run `/bitbadges:setup` once to verify everything is wired and `/bitbadges:s
   - `build` — meta-guide for building any token type. Discovers via `bitbadges-cli skills`, loads canonical instructions from the SDK, constructs via per-field MCP tools.
   - `review`, `simulate`, `explain` — pre-broadcast safety net. Wraps `bitbadges-cli check`, MCP `simulate_transaction`, and `bitbadges-cli explain`.
   - `query`, `address`, `claim` — runtime ops. Wraps the API routes, address derivations, and claim builder respectively.
-  - `broadcast` — hard-railed signer. Dry-run by default, explicit confirmation for live.
+  - `broadcast` — hard-railed signer. Picks one of four signing paths based on what wallet the user has (chain binary, browser bridge via `/sign`, throwaway burner, or programmatic `gen-tx-payload`). Dry-run by default, explicit confirmation for live.
 - **2 slash commands** — `/bitbadges:setup` (one-time prereq check + API key wiring) and `/bitbadges:status` (health check).
 - **`bitbadges-builder` subagent** for focused builder loops.
 - **SessionStart pre-warm** so the first MCP-tool call doesn't pay npx download latency.
