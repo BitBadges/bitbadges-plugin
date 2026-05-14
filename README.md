@@ -12,12 +12,24 @@ The BitBadges chain binary + CLI are the canonical way to interact with BitBadge
 curl -fsSL https://install.bitbadges.io | sh
 ```
 
-This installs `bitbadgeschaind` (the chain binary) and `bitbadges-cli` (the JS CLI that exposes 104+ API routes plus the `bitbadges-builder` MCP server). This plugin is a Claude Code convenience layer on top of those — it does not replace them.
+This installs `bitbadgeschaind` (the chain binary), `bitbadges-cli` (the JS SDK CLI that exposes 106+ API routes plus the `bitbadges-builder` MCP server), and a friendly `bb` alias that wraps `bitbadgeschaind`. This plugin is a Claude Code convenience layer on top of those — it does not replace them.
+
+## Two entrypoints — when to use which
+
+There are two binaries on PATH after install, and the skills route to each one accordingly:
+
+| Form | What it covers | When skills use it |
+|---|---|---|
+| **`bb cli <subcmd>`** (preferred) | The full Node SDK CLI surface — `build`, `deploy`, `api`, `auctions`, `crowdfunds`, `intents`, `auth`, etc. `bb cli` is `bitbadgeschaind cli` is `bitbadges-cli` — same code, friendlier alias. | Almost all skills (`build`, `query`, `simulate`, `explain`, `review`, `claim`, `address`, most of `broadcast`). |
+| **`bitbadgeschaind tx \| query \| keys`** (no `cli` forwarder) | Native Cosmos chain-binary surface — keyring management, signing, on-chain queries. NOT forwarded through `bitbadges-cli`. | `broadcast` skill's "chain binary" path (`bitbadgeschaind tx <module> <action>`). Address skill's keyring lookups. |
+| **`bitbadges-cli <subcmd>`** (direct) | Same as `bb cli <subcmd>` — the underlying JS binary, no chain-binary wrapper. Use when the chain binary isn't on PATH or scripts pin the JS-only entry. | Fallback only — examples in the skills standardize on `bb cli` for terseness. |
+
+**Rule of thumb**: when in doubt, use `bb cli <subcmd>`. The only time you must use `bitbadgeschaind` directly is for the Cosmos-native surface (`tx`, `query`, `keys`) — those don't have a `bb cli` equivalent because they're not part of the JS SDK.
 
 Get an API key at [bitbadges.io/developer](https://bitbadges.io/developer) and configure it once:
 
 ```sh
-bitbadges-cli config set apiKey YOUR_KEY
+bb cli config set apiKey YOUR_KEY
 ```
 
 ## Install the plugin
