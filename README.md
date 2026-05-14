@@ -14,22 +14,22 @@ curl -fsSL https://install.bitbadges.io | sh
 
 This installs `bitbadgeschaind` (the chain binary), `bitbadges-cli` (the JS SDK CLI that exposes 106+ API routes plus the `bitbadges-builder` MCP server), and a friendly `bb` alias that wraps `bitbadgeschaind`. This plugin is a Claude Code convenience layer on top of those — it does not replace them.
 
-## Two entrypoints — when to use which
+## One binary, one flat surface
 
-There are two binaries on PATH after install, and the skills route to each one accordingly:
+After install, `bb` is the single user-facing name. Every SDK command lives at the top level — no `cli` infix needed. The plugin skills standardize on this short form:
 
 | Form | What it covers | When skills use it |
 |---|---|---|
-| **`bb cli <subcmd>`** (preferred) | The full Node SDK CLI surface — `build`, `deploy`, `api`, `auctions`, `crowdfunds`, `intents`, `auth`, etc. `bb cli` is `bitbadgeschaind cli` is `bitbadges-cli` — same code, friendlier alias. | Almost all skills (`build`, `query`, `simulate`, `explain`, `review`, `claim`, `address`, most of `broadcast`). |
-| **`bitbadgeschaind tx \| query \| keys`** (no `cli` forwarder) | Native Cosmos chain-binary surface — keyring management, signing, on-chain queries. NOT forwarded through `bitbadges-cli`. | `broadcast` skill's "chain binary" path (`bitbadgeschaind tx <module> <action>`). Address skill's keyring lookups. |
-| **`bitbadges-cli <subcmd>`** (direct) | Same as `bb cli <subcmd>` — the underlying JS binary, no chain-binary wrapper. Use when the chain binary isn't on PATH or scripts pin the JS-only entry. | Fallback only — examples in the skills standardize on `bb cli` for terseness. |
+| **`bb <subcmd>`** (preferred) | Everything. The full SDK surface — `build`, `deploy`, `api`, `auctions`, `crowdfunds`, `intents`, `auth`, `account`, `pools`, `pairs`, `dev`, `settings`, etc. — plus every Cosmos-native surface (`tx`, `query`, `keys`) on the same binary. | Every skill. |
+| **`bitbadges-cli <subcmd>`** (direct) | Same SDK surface as `bb <subcmd>`, just the underlying JS binary. Use only when the chain binary isn't on PATH or a script pins the JS-only entry. | Fallback only. |
+| **`bb cli <subcmd>`** (deprecated alias) | Same as `bb <subcmd>`. Kept for one release so existing scripts and demos keep working — emits a one-line deprecation banner to stderr. Set `BB_QUIET=1` to suppress. | Never — examples have all moved to `bb <subcmd>`. |
 
-**Rule of thumb**: when in doubt, use `bb cli <subcmd>`. The only time you must use `bitbadgeschaind` directly is for the Cosmos-native surface (`tx`, `query`, `keys`) — those don't have a `bb cli` equivalent because they're not part of the JS SDK.
+**Rule of thumb**: when in doubt, use `bb <subcmd>`. Chain-native surfaces (`tx`, `query`, `keys`) live there too — `bb --help` groups them as "Chain operations" so you can tell at a glance which side of the binary owns each command.
 
 Get an API key at [bitbadges.io/developer](https://bitbadges.io/developer) and configure it once:
 
 ```sh
-bb cli config set apiKey YOUR_KEY
+bb settings set apiKey YOUR_KEY
 ```
 
 ## Install the plugin
@@ -47,10 +47,10 @@ Then run `/bitbadges:setup` once to verify everything is wired and `/bitbadges:s
 
 - **MCP tools** — `bitbadges-builder` registered automatically (no separate `claude mcp add` step). Exposes 50+ session-based per-field token construction tools, queries, validation, review, and simulation.
 - **8 skills** — guides that route Claude to the right CLI command, MCP tool, or docs page for each common BitBadges workflow:
-  - `build` — meta-guide for building any token type. Discovers via `bitbadges-cli skills`, loads canonical instructions from the SDK, constructs via per-field MCP tools.
-  - `review`, `simulate`, `explain` — pre-broadcast safety net. Wraps `bitbadges-cli check`, MCP `simulate_transaction`, and `bitbadges-cli explain`.
+  - `build` — meta-guide for building any token type. Discovers via `bb dev skills`, loads canonical instructions from the SDK, constructs via per-field MCP tools.
+  - `review`, `simulate`, `explain` — pre-broadcast safety net. Wraps `bb check`, MCP `simulate_transaction`, and `bb explain`.
   - `query`, `address`, `claim` — runtime ops. Wraps the API routes, address derivations, and claim builder respectively.
-  - `broadcast` — hard-railed signer. Picks one of four signing paths based on what wallet the user has (chain binary, browser bridge via `/sign`, throwaway burner, or programmatic `gen-tx-payload`). Dry-run by default, explicit confirmation for live.
+  - `broadcast` — hard-railed signer. Picks one of four signing paths based on what wallet the user has (chain binary, browser bridge via `/sign`, throwaway burner, or programmatic `bb deploy --gen-payload`). Dry-run by default, explicit confirmation for live.
 - **2 slash commands** — `/bitbadges:setup` (one-time prereq check + API key wiring) and `/bitbadges:status` (health check).
 - **`bitbadges-builder` subagent** for focused builder loops.
 - **SessionStart pre-warm** so the first MCP-tool call doesn't pay npx download latency.

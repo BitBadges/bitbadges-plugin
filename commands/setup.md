@@ -13,7 +13,7 @@ The chain + CLI install is **the** entrypoint. The plugin's `npx`-based MCP fall
 
 1. **Chain binary check (required).** If `bitbadgeschaind` is on PATH, print the version. If not, print the install one-liner (`curl -fsSL https://install.bitbadges.io | sh`) and ask for explicit consent before running it. Never auto-pipe `curl ... | sh` — show the command, wait for "yes".
 2. **CLI check (required).** Same flow — if `bitbadges-cli` is on PATH, OK; otherwise the same one-liner installs both binaries together. The presence of `bitbadges-cli` globally also means the `bitbadges-builder` MCP bin is on PATH, which is faster and more reliable than the plugin's npx fallback.
-3. **API key (required).** If `~/.bitbadges/config.json` already has an `apiKey`, use it — no prompt. The CLI config is canonical; both the CLI and the plugin read from there. Otherwise prompt for the key and write via `bitbadges-cli config set apiKey <KEY>`. Source: https://bitbadges.io/developer.
+3. **API key (required).** If `~/.bitbadges/config.json` already has an `apiKey`, use it — no prompt. The CLI config is canonical; both the CLI and the plugin read from there. Otherwise prompt for the key and write via `bb settings set apiKey <KEY>`. Source: https://bitbadges.io/developer.
 4. **Migration check (optional).** If the user previously ran `claude mcp add bitbadges-builder ...` manually (user scope), that registration coexists with the plugin's `.mcp.json` entry and produces duplicate MCP servers. Detect it (`claude mcp list | grep bitbadges-builder`) and offer to run `claude mcp remove bitbadges-builder` to clean up.
 
 ## Behavior summary for Claude

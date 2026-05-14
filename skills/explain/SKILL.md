@@ -19,13 +19,13 @@ Use when the user wants natural-language understanding rather than raw JSON.
 Call the `explain_collection` MCP tool with `collectionId: "<id>"` and an `audience` of `user`, `developer`, or `auditor`. CLI fallback:
 
 ```bash
-bitbadges-cli explain <id>
+bb explain <id>
 ```
 
 **Transaction file:**
 
 ```bash
-bitbadges-cli explain @<path>.json
+bb explain @<path>.json
 ```
 
 The CLI auto-detects whether the input is a transaction or a collection. The `--audience` selector currently only exists on the MCP tool path.
