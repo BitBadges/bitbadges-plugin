@@ -17,20 +17,20 @@ Use this skill any time the user has built a BitBadges transaction or wants a se
 **Transaction file review (input is a path):**
 
 ```bash
-bitbadges-cli check @<path-to-tx.json> --depth review
+bb check @<path-to-tx.json> --depth review
 ```
 
 Or run the full pass (validate + review + metadata, the default depth):
 
 ```bash
-bitbadges-cli check @<path-to-tx.json>
+bb check @<path-to-tx.json>
 ```
 
 The CLI accepts `@file.json` syntax for path inputs. JSON output includes parsed warnings, errors, and suggestions.
 
 **Live collection review (input is a numeric ID or a collection ID string):**
 
-Call the `review_collection` MCP tool with `collectionId: "<id>"`. Falls back to `bitbadges-cli api tokens get-collection <id>` + manual inspection if MCP isn't available.
+Call the `review_collection` MCP tool with `collectionId: "<id>"`. Falls back to `bb api tokens get-collection <id>` + manual inspection if MCP isn't available.
 
 ## What good output looks like
 

@@ -9,8 +9,8 @@ BitBadges runs on a Cosmos chain with EVM compatibility, so addresses come in tw
 ## Conversion
 
 ```bash
-bitbadges-cli address convert <address> --to <bb1|0x>
-bitbadges-cli address validate <address>
+bb account convert <address> --to <bb1|0x>
+bb account validate <address>
 ```
 
 `bb1...` ↔ `0x...` is deterministic — same key, two encodings. The CLI handles the bech32/hex math.
@@ -19,9 +19,9 @@ bitbadges-cli address validate <address>
 
 | Need | Command |
 |---|---|
-| Backing address for an IBC denom (smart-token deposits) | `bitbadges-cli alias for-ibc-backing <denom>` |
-| Wrapper address for a collection | `bitbadges-cli alias for-wrapper <collection-id>` |
-| Mint-escrow address for a collection | `bitbadges-cli alias for-mint-escrow <collection-id>` |
+| Backing address for an IBC denom (smart-token deposits) | `bb account alias for-ibc-backing <denom>` |
+| Wrapper address for a collection | `bb account alias for-wrapper <collection-id>` |
+| Mint-escrow address for a collection | `bb account alias for-mint-escrow <collection-id>` |
 
 These are protocol-controlled addresses with auto-set approvals. Don't try to write to them directly — use the corresponding flow (IBC backing, mint, etc.).
 

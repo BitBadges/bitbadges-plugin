@@ -12,11 +12,11 @@ There are five signing paths. Choose based on what the user actually has — not
 
 | What the user has | Use |
 |---|---|
-| A bb1 key in `bitbadgeschaind keys` and a CLI workflow | **`deploy --with-keyring --from <key>`** — the CLI prints the equivalent `bitbadgeschaind tx ...` command, runs it, returns the response. Best for headless scripts. |
-| Same but driving the chain binary directly | **Chain binary** — `bitbadgeschaind tx ...` |
-| Just a browser wallet (Keplr, MetaMask, Phantom) | **Browser bridge** — `bitbadges-cli deploy --browser` |
-| Want zero wallet setup for a one-shot create-collection | **Burner** — `bitbadges-cli deploy --burner` |
-| A programmatic signer (cosmjs / ethers / viem / hardware that takes raw bytes) | **gen-tx-payload** — produces SignDoc bytes, user signs in their own code |
+| A bb1 key in `bb keys` and a CLI workflow | **`bb deploy --with-keyring --from <key>`** — the CLI prints the equivalent `bb tx ...` command, runs it, returns the response. Best for headless scripts. |
+| Same but driving the chain binary directly | **Chain binary** — `bb tx ...` |
+| Just a browser wallet (Keplr, MetaMask, Phantom) | **Browser bridge** — `bb deploy --browser` |
+| Want zero wallet setup for a one-shot create-collection | **Burner** — `bb deploy --burner` |
+| A programmatic signer (cosmjs / ethers / viem / hardware that takes raw bytes) | **`bb deploy --gen-payload`** — produces SignDoc bytes, user signs in their own code |
 
 If the user can't tell you which they have, ask. Don't guess. The simulator and review steps are identical regardless of path.
 
@@ -25,7 +25,7 @@ If the user can't tell you which they have, ask. Don't guess. The simulator and 
 After broadcast succeeds, the indexer is eventually-consistent — querying the new collection / dynamic store immediately can 404 for a few seconds. Add `--wait-for-indexer [timeout-ms]` (default 30000) to any `deploy` invocation to poll until the entity appears, so the next step in an agent script can rely on it. The CLI returns a `waited: { entity, id, attempts, elapsedMs, ok }` field on the response envelope.
 
 ```bash
-bitbadges-cli deploy --burner --msg-stdin --manager bb1... \
+bb deploy --burner --msg-stdin --manager bb1... \
   --wait-for-indexer
 ```
 
@@ -39,47 +39,47 @@ Skip the flag when you don't need to query the entity immediately afterwards.
 
 If any are missing, stop.
 
-## Path 1 — Chain binary (`bitbadgeschaind`)
+## Path 1 — Chain binary (`bb tx`)
 
 For headless agents with a bb1 key in the keyring, or hardware-wallet flows.
 
 ```bash
 # Default: dry-run
-bitbadgeschaind tx <module> <action> <args> --from <key> --dry-run
+bb tx <module> <action> <args> --from <key> --dry-run
 
 # Live broadcast — only after explicit user confirmation
-bitbadgeschaind tx <module> <action> <args> --from <key> -y
+bb tx <module> <action> <args> --from <key> -y
 ```
 
 Network flags:
 - Mainnet (default): no flag
 - Testnet: `--node https://rpc-testnet.bitbadges.io --chain-id bitbadges-1-testnet`
 
-## Path 1b — CLI keyring shortcut (`deploy --with-keyring --from <key>`)
+## Path 1b — CLI keyring shortcut (`bb deploy --with-keyring --from <key>`)
 
-Same outcome as Path 1, but you stay inside `bitbadges-cli`. The CLI inspects the msg JSON, prints the equivalent `bitbadgeschaind tx ...` command (so users see exactly what's being signed), executes it, and returns the chain response. Best when you've already piped a `build` output and don't want to context-switch:
+Same outcome as Path 1, but you stay inside the build pipeline. The CLI inspects the msg JSON, prints the equivalent `bb tx ...` command (so users see exactly what's being signed), executes it, and returns the chain response. Best when you've already piped a `build` output and don't want to context-switch:
 
 ```bash
-bitbadges-cli build vault --name … \
-  | bitbadges-cli deploy --with-keyring --from mykey --msg-stdin \
+bb build vault --name … \
+  | bb deploy --with-keyring --from mykey --msg-stdin \
       --keyring-backend test --manager bb1…
 ```
 
 The msg is unrestricted — works for any tokenization msg, not just create-collection.
 
-## Path 2 — Browser bridge (`deploy --browser`)
+## Path 2 — Browser bridge (`bb deploy --browser`)
 
 For users whose wallet only lives in a browser extension (Keplr, MetaMask, Phantom, WalletConnect). The CLI opens `/sign` on bitbadges.io, the user reviews + signs in their wallet, the tx hash comes back to the terminal.
 
 ```bash
 # Standard sign + broadcast
-bitbadges-cli deploy --browser --msg-file tx.json --manager bb1...
+bb deploy --browser --msg-file tx.json --manager bb1...
 
 # Sign-only (return signed tx bytes, caller broadcasts on its own schedule)
-bitbadges-cli deploy --browser --sign-only --msg-file tx.json --manager bb1...
+bb deploy --browser --sign-only --msg-file tx.json --manager bb1...
 
 # Compose with build in one step
-bitbadges-cli build vault --name X --image Y --description Z --manager bb1... \
+bb build vault --name X --image Y --description Z --manager bb1... \
   --backing-coin BADGE --deploy-with-browser
 ```
 
@@ -90,35 +90,35 @@ For SSH-tunneled dev (laptop browser, server-side CLI): pin a port with `--port 
 Auth (Full Access session) flow with the same bridge:
 
 ```bash
-bitbadges-cli auth login --browser --address bb1...
+bb auth login --browser --address bb1...
 ```
 
 Pubkey is captured from the wallet's signature response — no `--public-key` to manage.
 
-## Path 3 — Burner (`deploy --burner`)
+## Path 3 — Burner (`bb deploy --burner`)
 
 For agents and one-shot scripts that just want to ship a create-collection without bringing any wallet at all. CLI generates a throwaway signer, funds it from the faucet (or manually), broadcasts once, discards. CREATE-only.
 
 ```bash
-bitbadges-cli deploy --burner --msg-file tx.json --manager bb1...
+bb deploy --burner --msg-file tx.json --manager bb1...
 ```
 
 `--manager` (the bb1 the user actually controls) captures lasting collection ownership. The burner's only job is paying for one broadcast.
 
-## Path 4 — `gen-tx-payload` for programmatic signers
+## Path 4 — `bb deploy --gen-payload` for programmatic signers
 
 For custom EVM wallets, ethers/viem scripts, hardware wallets that take raw SignDoc bytes, custodial signers — anything that isn't the chain binary or a browser wallet.
 
 ```bash
 # Cosmos signer (cosmjs / hardware wallet)
-bitbadges-cli build vault ... --quiet \
-  | bitbadges-cli gen-tx-payload --from bb1... --gas 600000
+bb build vault ... --quiet \
+  | bb deploy --gen-payload --from bb1... --gas 600000
 
 # EVM-only signer (ethers / viem on the BitBadges EVM chain)
-bitbadges-cli gen-tx-payload --msg-file tx.json --from 0x... --gas 600000
+bb deploy --gen-payload --msg-file tx.json --from 0x... --gas 600000
 
 # Both, in one envelope
-bitbadges-cli gen-tx-payload --msg-file tx.json --from bb1... --with-evm-tx --gas 600000
+bb deploy --gen-payload --msg-file tx.json --from bb1... --with-evm-tx --gas 600000
 ```
 
 Output is a self-contained JSON envelope: `signDirect.{bodyBytes, authInfoBytes, signBytes}`, `legacyAmino.{...}`, `evmTx.{to, data, value, chainId, gasLimit}`, plus pre-resolved chain id, account number, sequence, public key, fee, memo, and the broadcast endpoint URL. The caller signs the bytes locally and assembles a TxRaw to POST.
@@ -127,19 +127,19 @@ For fresh accounts where the indexer doesn't have a public key yet, derive one w
 
 ```bash
 # Lookup-only path: indexer + chain LCD
-bitbadges-cli gen-pub-key --address bb1...
+bb dev gen-pub-key --address bb1...
 
 # Recovery path: user signs a fixed canonical message, no mnemonic needed
-bitbadges-cli gen-pub-key --print-message     # prints what to sign
-bitbadges-cli gen-pub-key --address bb1... --signature <base64>
+bb dev gen-pub-key --print-message     # prints what to sign
+bb dev gen-pub-key --address bb1... --signature <base64>
 ```
 
-`gen-pub-key` never asks for a mnemonic or signing material — the user signs the canonical message in their own wallet (Keplr signArbitrary, hardware wallet, air-gapped script), and the CLI iterates the secp256k1 recovery candidates to find the one matching the address.
+`bb dev gen-pub-key` never asks for a mnemonic or signing material — the user signs the canonical message in their own wallet (Keplr signArbitrary, hardware wallet, air-gapped script), and the CLI iterates the secp256k1 recovery candidates to find the one matching the address.
 
 ## Failure modes (path-specific)
 
 **Chain binary:**
-- "bitbadgeschaind: command not found" — route to `/bitbadges:setup`.
+- "bb: command not found" — route to `/bitbadges:setup`.
 - "key not found" — list available keys, ask which to use.
 - "insufficient fees" / "out of gas" — let the binary auto-estimate (`--gas auto`) and retry, or have the user bump the cap.
 
@@ -151,19 +151,19 @@ bitbadges-cli gen-pub-key --address bb1... --signature <base64>
 
 **Burner:**
 - "faucet refused" — non-local network without faucet enabled. Use `--fund manual` and prefund the burner address.
-- "insufficient balance" — sweep dust out via `bitbadges-cli burner sweep <selector> --to <real-address>`.
+- "insufficient balance" — sweep dust out via `bb burner sweep <selector> --to <real-address>`.
 
-**gen-tx-payload:**
-- "Missing public key" — fresh account; run `gen-pub-key` first or pass `--public-key` explicitly.
+**`bb deploy --gen-payload`:**
+- "Missing public key" — fresh account; run `bb dev gen-pub-key` first or pass `--public-key` explicitly.
 - "Indexer fetch failed" — pass `--no-fetch` with explicit `--account-number`, `--sequence`, `--public-key`.
-- "Unsupported message type" — `gen-tx-payload` covers every `tokenization.Msg*` type (the output of `bitbadges-cli build`). Other modules (IBC, gov, custom) need to be proto-encoded by the caller.
+- "Unsupported message type" — `bb deploy --gen-payload` covers every `tokenization.Msg*` type (the output of `bb build`). Other modules (IBC, gov, custom) need to be proto-encoded by the caller.
 
 ## Hard don'ts
 
 - Don't broadcast to mainnet without explicit user confirmation in the same turn.
 - Don't broadcast a transaction that hasn't been simulated.
 - Don't loop a failing broadcast more than twice — stop and report rather than chewing through fees.
-- Don't ask the user for a mnemonic or signing material. The browser bridge captures pubkeys from the wallet's response. `gen-pub-key` recovers them from a signed canonical message. Neither path needs the user to expose anything.
+- Don't ask the user for a mnemonic or signing material. The browser bridge captures pubkeys from the wallet's response. `bb dev gen-pub-key` recovers them from a signed canonical message. Neither path needs the user to expose anything.
 - Don't conflate the four paths. Picking the wrong one wastes time at best and wastes funds at worst.
 
 ## Reference

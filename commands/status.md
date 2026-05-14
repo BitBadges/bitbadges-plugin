@@ -7,14 +7,14 @@ argument-hint: (no arguments)
 
 A one-shot diagnostic. Runs `${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh` and reports:
 
-- `bitbadgeschaind` version (or "not installed").
-- `bitbadges-cli` version (resolved via `npx bitbadges --version`).
+- `bb` chain binary version (or "not installed").
+- `bb` SDK version (resolved via `bb --version`).
 - Active network (mainnet / testnet / local).
-- API connectivity (`bitbadges-cli doctor`).
+- API connectivity (`bb doctor`).
 - API key configured (yes/no, masked).
 - MCP server `bitbadges-builder` is reachable.
 
-Output is human-readable by default; the underlying `bitbadges-cli doctor` always emits the universal `{ok, data, warnings, error}` envelope to stdout with the colored scorecard on stderr. Slash commands surface the human form.
+Output is human-readable by default; the underlying `bb doctor` always emits the universal `{ok, data, warnings, error}` envelope to stdout with the colored scorecard on stderr. Slash commands surface the human form.
 
 ## When to use
 

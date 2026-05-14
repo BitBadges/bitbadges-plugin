@@ -23,14 +23,14 @@ Use the `build_claim` MCP tool with the desired plugins (gating modes) and appro
 ## Audit existing
 
 ```bash
-bitbadges-cli api claims get-claim <claim-id>
+bb api claims get-claim <claim-id>
 ```
 
 Then review for: overlapping plugins (e.g. password + open), expired time windows, max-uses set or unset, and whether the underlying approval still has supply.
 
 ## Failure modes
 
-- Mismatched plugin ids — the CLI / MCP will reject; confirm against `bitbadges-cli api --help-json` if unsure.
+- Mismatched plugin ids — the CLI / MCP will reject; confirm against `bb api --help-json` if unsure.
 - Gating mode that doesn't compose with the chosen approval (e.g. open claim against a 1-use approval).
 
 ## Don't
