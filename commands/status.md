@@ -14,7 +14,7 @@ A one-shot diagnostic. Runs `${CLAUDE_PLUGIN_ROOT}/scripts/doctor.sh` and report
 - API key configured (yes/no, masked).
 - MCP server `bitbadges-builder` is reachable.
 
-Output is human-readable by default. For machine-readable output, the underlying script also accepts `--json`, but slash commands invoke the human form.
+Output is human-readable by default; the underlying `bitbadges-cli doctor` always emits the universal `{ok, data, warnings, error}` envelope to stdout with the colored scorecard on stderr. Slash commands surface the human form.
 
 ## When to use
 
