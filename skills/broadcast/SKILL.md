@@ -8,16 +8,28 @@ This is the only skill that touches money. Treat it as on-rails, not LLM-discove
 
 ## Pick a path
 
-There are four signing paths. Choose based on what the user actually has — not what's most convenient for you.
+There are five signing paths. Choose based on what the user actually has — not what's most convenient for you.
 
 | What the user has | Use |
 |---|---|
-| A bb1 key in `bitbadgeschaind keys` (or a hardware wallet that signs ADR-36) | **Chain binary** — `bitbadgeschaind tx ...` |
+| A bb1 key in `bitbadgeschaind keys` and a CLI workflow | **`deploy --with-keyring --from <key>`** — the CLI prints the equivalent `bitbadgeschaind tx ...` command, runs it, returns the response. Best for headless scripts. |
+| Same but driving the chain binary directly | **Chain binary** — `bitbadgeschaind tx ...` |
 | Just a browser wallet (Keplr, MetaMask, Phantom) | **Browser bridge** — `bitbadges-cli deploy --browser` |
 | Want zero wallet setup for a one-shot create-collection | **Burner** — `bitbadges-cli deploy --burner` |
 | A programmatic signer (cosmjs / ethers / viem / hardware that takes raw bytes) | **gen-tx-payload** — produces SignDoc bytes, user signs in their own code |
 
 If the user can't tell you which they have, ask. Don't guess. The simulator and review steps are identical regardless of path.
+
+## Useful flag on every `deploy` path: `--wait-for-indexer`
+
+After broadcast succeeds, the indexer is eventually-consistent — querying the new collection / dynamic store immediately can 404 for a few seconds. Add `--wait-for-indexer [timeout-ms]` (default 30000) to any `deploy` invocation to poll until the entity appears, so the next step in an agent script can rely on it. The CLI returns a `waited: { entity, id, attempts, elapsedMs, ok }` field on the response envelope.
+
+```bash
+bitbadges-cli deploy --burner --msg-stdin --manager bb1... \
+  --wait-for-indexer
+```
+
+Skip the flag when you don't need to query the entity immediately afterwards.
 
 ## Hard requirements (universal)
 
@@ -42,6 +54,18 @@ bitbadgeschaind tx <module> <action> <args> --from <key> -y
 Network flags:
 - Mainnet (default): no flag
 - Testnet: `--node https://rpc-testnet.bitbadges.io --chain-id bitbadges-1-testnet`
+
+## Path 1b — CLI keyring shortcut (`deploy --with-keyring --from <key>`)
+
+Same outcome as Path 1, but you stay inside `bitbadges-cli`. The CLI inspects the msg JSON, prints the equivalent `bitbadgeschaind tx ...` command (so users see exactly what's being signed), executes it, and returns the chain response. Best when you've already piped a `build` output and don't want to context-switch:
+
+```bash
+bitbadges-cli build vault --name … \
+  | bitbadges-cli deploy --with-keyring --from mykey --msg-stdin \
+      --keyring-backend test --manager bb1…
+```
+
+The msg is unrestricted — works for any tokenization msg, not just create-collection.
 
 ## Path 2 — Browser bridge (`deploy --browser`)
 

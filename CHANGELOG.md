@@ -4,6 +4,10 @@ All notable changes to the BitBadges Claude Code plugin will be documented in th
 
 ## [Unreleased]
 
+### Changed
+- `query/SKILL.md` — description now lists the standards surface (auctions, crowdfunds, payment-requests, intents, smart-tokens, etc) alongside the raw API routes. Added a "Standards shortcuts" section pointing Claude at `bitbadges-cli <standard> list / show / status` as the preferred route over `bitbadges-cli api ...` when the user asks about a standard by name. API route count bumped from 104 → 106 (SDK #223 + #228 added 27+ indexer routes including consolidated `/swap/*` and gamm queries).
+- `broadcast/SKILL.md` — added a fifth signing path (`deploy --with-keyring --from <key>`) for headless CLI-only flows that already have a key in the chain binary's keyring; the CLI prints + runs the equivalent `bitbadgeschaind tx ...` so users see what's being signed. Added a top-level note about `--wait-for-indexer [timeout-ms]` for agent scripts that immediately need to query the newly-created entity.
+
 ### Added
 - Initial scaffolding: plugin manifest, MCP server registration, README, LICENSE.
 - 8 skills, all hand-written as routing guides on top of the CLI / MCP / docs (no duplicated SDK content):

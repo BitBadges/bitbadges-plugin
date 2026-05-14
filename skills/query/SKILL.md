@@ -1,5 +1,5 @@
 ---
-description: Query BitBadges collections, balances, accounts, claims, addresses, and any of the 104+ API routes. Discovers routes via --help-json instead of guessing.
+description: Query BitBadges collections, balances, accounts, claims, addresses, standards (auctions / crowdfunds / payment-requests / intents / smart-tokens / ...), and any of the 106+ API routes. Discovers routes via --help-json instead of guessing.
 ---
 
 # Query
@@ -28,6 +28,28 @@ The `--help-json` output is the source of truth for routes and parameters. Read 
 | Address list contents | `bitbadges-cli api address-lists get-list <list-id>` |
 
 Or use the MCP fast-paths: `query_collection`, `query_balance`, `verify_ownership`.
+
+## Standards shortcuts (preferred over raw API)
+
+For every BitBadges standard the CLI exposes a typed list / show / status surface that's friendlier than the raw indexer routes. Reach for these BEFORE `api ...` when the user asks about a standard by name:
+
+```bash
+bitbadges-cli auctions list                       # browse active auctions
+bitbadges-cli auctions show 42                    # one auction
+bitbadges-cli auctions status 42                  # bidding | accepting | sold | expired
+
+bitbadges-cli crowdfunds list                     # crowdfund campaigns
+bitbadges-cli pay-requests list --mine bb1...     # payment requests TO me
+bitbadges-cli intents list --pay-denom uusdc      # intent-exchange offers
+bitbadges-cli prediction-markets list --open      # active prediction markets
+bitbadges-cli credit-tokens show <id>             # one credit-token collection
+bitbadges-cli smart-tokens status <id>            # one smart token
+bitbadges-cli subscriptions status <id> <addr>    # subscription tier status
+bitbadges-cli swap assets / chains / balances     # cross-chain swap surface
+bitbadges-cli dynamic-stores list-values <id>     # on-chain key→bool map
+```
+
+Every standard supports `--mine <addr>` (or equivalent) to scope to a specific user. Add `--testnet` / `--local` for non-mainnet. Output is structured JSON. The full surface lives at the docs Standards Commands reference.
 
 ## Networks
 
