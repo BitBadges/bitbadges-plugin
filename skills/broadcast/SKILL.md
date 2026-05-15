@@ -80,7 +80,7 @@ bb deploy --browser --sign-only --msg-file tx.json --manager bb1...
 
 # Compose with build in one step
 bb build vault --name X --image Y --description Z --manager bb1... \
-  --backing-coin BADGE --deploy-with-browser
+  --backing-coin BADGE --browser
 ```
 
 The page validates a 6-digit PIN against what the CLI prints, blocks signing if the connected wallet's address doesn't match `--manager`, and reuses the dashboard's full review preview (Preview / Review Items / Transferability / Permissions / Details) for collection-creation msgs. The user can disconnect/reconnect a wallet inline if the wrong one was active.
