@@ -1,5 +1,5 @@
 ---
-description: Query BitBadges collections, balances, accounts, claims, addresses, standards (auctions / crowdfunds / payment-requests / intents / smart-tokens / ...), and any of the 106+ API routes. Discovers routes via --help-json instead of guessing.
+description: Query BitBadges collections, balances, accounts, claims, addresses, standards (auctions / payment-requests / intents / smart-tokens / ...), and any of the 106+ API routes. Discovers routes via --help-json instead of guessing.
 ---
 
 # Query
@@ -38,7 +38,6 @@ bb auctions list                       # browse active auctions
 bb auctions show 42                    # one auction
 bb auctions status 42                  # bidding | accepting | sold | expired
 
-bb crowdfunds list                     # crowdfund campaigns
 bb pay-requests list --mine bb1...     # payment requests TO me
 bb intents list --pay-denom uusdc      # intent-exchange offers
 bb prediction-markets list --open      # active prediction markets

@@ -20,7 +20,7 @@ After install, `bb` is the single user-facing name. Every SDK command lives at t
 
 | Form | What it covers | When skills use it |
 |---|---|---|
-| **`bb <subcmd>`** (preferred) | Everything. The full SDK surface — `build`, `deploy`, `api`, `auctions`, `crowdfunds`, `intents`, `auth`, `account`, `pools`, `pairs`, `dev`, `settings`, etc. — plus every Cosmos-native surface (`tx`, `query`, `keys`) on the same binary. | Every skill. |
+| **`bb <subcmd>`** (preferred) | Everything. The full SDK surface — `build`, `deploy`, `api`, `auctions`, `intents`, `auth`, `account`, `pools`, `pairs`, `dev`, `settings`, etc. — plus every Cosmos-native surface (`tx`, `query`, `keys`) on the same binary. | Every skill. |
 | **`bitbadges-cli <subcmd>`** (direct) | Same SDK surface as `bb <subcmd>`, just the underlying JS binary. Use only when the chain binary isn't on PATH or a script pins the JS-only entry. | Fallback only. |
 | **`bb cli <subcmd>`** (deprecated alias) | Same as `bb <subcmd>`. Kept for one release so existing scripts and demos keep working — emits a one-line deprecation banner to stderr. Set `BB_QUIET=1` to suppress. | Never — examples have all moved to `bb <subcmd>`. |
 

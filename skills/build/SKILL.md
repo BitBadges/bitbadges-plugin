@@ -1,5 +1,5 @@
 ---
-description: Build any kind of BitBadges token (smart-token, fungible, NFT, subscription, vault, claim, quest, auction, payment, crowdfund, prediction-market, ...). Discover the right type via the CLI, load canonical instructions from the SDK, construct via per-field MCP tools.
+description: Build any kind of BitBadges token (smart-token, fungible, NFT, subscription, vault, claim, quest, auction, payment, prediction-market, ...). Discover the right type via the CLI, load canonical instructions from the SDK, construct via per-field MCP tools.
 ---
 
 # Build a BitBadges token
