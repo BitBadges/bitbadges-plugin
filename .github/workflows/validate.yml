@@ -12,6 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Test installed CLI and MCP launcher contracts
+        run: python3 -m unittest discover -s tests -v
+
       - name: Validate JSON files
         run: |
           jq -e . .claude-plugin/plugin.json > /dev/null

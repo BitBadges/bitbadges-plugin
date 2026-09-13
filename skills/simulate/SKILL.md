@@ -14,14 +14,14 @@ Always prefer simulate-first over broadcast-and-see. Use this skill before any `
 
 ## What to do
 
-**Via MCP (preferred in Claude Code):**
+**Via MCP (optional adapter):**
 
 Call the `simulate_transaction` MCP tool with the transaction object.
 
-**Via CLI:**
+**Via CLI (primary):**
 
 ```bash
-bb simulate @<path-to-tx.json>
+bb simulate tx.json --creator <signer-address>
 ```
 
 Or pipe a transaction via stdin:
@@ -45,4 +45,4 @@ cat tx.json | bb simulate -
 ## Don't
 
 - Don't claim a simulation result equals the broadcast result. Edge cases (block timing, races, fee spikes) can still bite.
-- Don't simulate then broadcast in one step without explicit user confirmation between the two.
+- A simulation does not grant signing authority. Follow the broadcast skill and the user's existing delegation scope.
