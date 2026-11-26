@@ -10,7 +10,7 @@ Use this skill any time the user has built a BitBadges transaction or wants a se
 
 - The user has a `tx.json` or similar transaction file on disk and wants it reviewed.
 - The user mentions a collection ID (e.g. "audit collection 142", "is collection 99 set up correctly?").
-- After any `bb-create-*` skill produces a transaction — always review before broadcasting.
+- After any builder produces a transaction — review before requesting a signature.
 
 ## What to do
 
@@ -30,7 +30,7 @@ The CLI accepts `@file.json` syntax for path inputs. JSON output includes parsed
 
 **Live collection review (input is a numeric ID or a collection ID string):**
 
-Call the `review_collection` MCP tool with `collectionId: "<id>"`. Falls back to `bb api tokens get-collection <id>` + manual inspection if MCP isn't available.
+Run `bb check <id>`. The optional `review_collection` MCP tool accepts `collectionId: "<id>"` for the same review workflow.
 
 ## What good output looks like
 
@@ -48,4 +48,4 @@ Call the `review_collection` MCP tool with `collectionId: "<id>"`. Falls back to
 ## Don't
 
 - Don't broadcast after review without explicit user confirmation. Review is read-only.
-- Don't auto-fix what the review surfaces — ask the user what to address. Per BitBadges convention, throws beat silent coercions.
+- Fix proposal defects within the user's requested scope, then rerun the checks. Ask when a fix changes payment terms, custody, or permissions; never silently weaken a guardrail to pass review.

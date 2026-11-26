@@ -4,7 +4,7 @@ description: Sign and broadcast a BitBadges transaction. Pick the right path bas
 
 # Broadcast
 
-This is the only skill that touches money. Treat it as on-rails, not LLM-discovered.
+Use this workflow whenever an operation can sign, broadcast, or change spending authority, including deployment flags on builders and standard commands.
 
 ## Pick a path
 
@@ -12,11 +12,11 @@ There are five signing paths. Choose based on what the user actually has — not
 
 | What the user has | Use |
 |---|---|
-| A bb1 key in `bb keys` and a CLI workflow | **`bb deploy --with-keyring --from <key>`** — the CLI prints the equivalent `bb tx ...` command, runs it, returns the response. Best for headless scripts. |
+| A bb1 key in `bb keys` and a CLI workflow | **`bb deploy --with-keyring --from <key>`** — the CLI prints the equivalent chain command. Add `--exec` only when execution is authorized. Best for headless scripts. |
 | Same but driving the chain binary directly | **Chain binary** — `bb tx ...` |
 | Just a browser wallet (Keplr, MetaMask, Phantom) | **Browser bridge** — `bb deploy --browser` |
 | Want zero wallet setup for a one-shot create-collection | **Burner** — `bb deploy --burner` |
-| A programmatic signer (cosmjs / ethers / viem / hardware that takes raw bytes) | **`bb deploy --gen-payload`** — produces SignDoc bytes, user signs in their own code |
+| A programmatic signer (cosmjs / ethers / viem / hardware that takes raw bytes) | **`bb deploy --gen-payload`** — emits a pre-hashed `signBytes` digest (`hashAlgorithm` is `sha256` or `keccak256`) plus raw `signDocBytes`. Sign `signBytes` directly. |
 
 If the user can't tell you which they have, ask. Don't guess. The simulator and review steps are identical regardless of path.
 
@@ -34,7 +34,7 @@ Skip the flag when you don't need to query the entity immediately afterwards.
 ## Hard requirements (universal)
 
 - The transaction has been **simulated and reviewed** in the same session.
-- The user has explicitly confirmed mainnet broadcasts in the same turn.
+- Execution is authorized for the exact transaction, or an existing delegated policy covers its network, signer, recipients, assets, amount, fees, actions, and expiry. A skill is guidance, not an enforcement mechanism for a spending policy. If authority is missing or ambiguous, request it.
 - A `--dry-run` was shown first whenever the path supports it.
 
 If any are missing, stop.
@@ -53,19 +53,19 @@ bb tx <module> <action> <args> --from <key> -y
 
 Network flags:
 - Mainnet (default): no flag
-- Testnet: `--node https://rpc-testnet.bitbadges.io --chain-id bitbadges-1-testnet`
+- Testnet: `--node https://rpc-testnet.bitbadges.io --chain-id bitbadges-2`
 
 ## Path 1b — CLI keyring shortcut (`bb deploy --with-keyring --from <key>`)
 
-Same outcome as Path 1, but you stay inside the build pipeline. The CLI inspects the msg JSON, prints the equivalent `bb tx ...` command (so users see exactly what's being signed), executes it, and returns the chain response. Best when you've already piped a `build` output and don't want to context-switch:
+Same outcome as Path 1, but you stay inside the build pipeline. The CLI inspects the msg JSON, prints the equivalent `bb tx ...` command (so users see exactly what's being signed), and only executes it when `--exec` is supplied. Multiple messages use sequential transactions, not one atomic transaction. Best when you've already piped a `build` output and don't want to context-switch:
 
 ```bash
 bb build vault --name … \
   | bb deploy --with-keyring --from mykey --msg-stdin \
-      --keyring-backend test --manager bb1…
+      --keyring-backend test --manager bb1… --exec
 ```
 
-The msg is unrestricted — works for any tokenization msg, not just create-collection.
+This path supports existing-collection operations as well as creation. Check the installed CLI's supported message types before preparing a keyring command.
 
 ## Path 2 — Browser bridge (`bb deploy --browser`)
 
@@ -73,17 +73,25 @@ For users whose wallet only lives in a browser extension (Keplr, MetaMask, Phant
 
 ```bash
 # Standard sign + broadcast
-bb deploy --browser --msg-file tx.json --manager bb1...
+bb deploy --browser --msg-file tx.json --expected-address bb1...
 
 # Sign-only (return signed tx bytes, caller broadcasts on its own schedule)
-bb deploy --browser --sign-only --msg-file tx.json --manager bb1...
+bb deploy --browser --sign-only --msg-file tx.json --expected-address bb1...
 
 # Compose with build in one step
 bb build vault --name X --image Y --description Z --manager bb1... \
   --backing-coin BADGE --browser
 ```
 
-The page validates a 6-digit PIN against what the CLI prints, blocks signing if the connected wallet's address doesn't match `--manager`, and reuses the dashboard's full review preview (Preview / Review Items / Transferability / Permissions / Details) for collection-creation msgs. The user can disconnect/reconnect a wallet inline if the wrong one was active.
+The versioned signing request binds the request ID, network, expiry, payload, and expected signer. Supply `--expected-address` for the payer or signer; do not assume the collection manager is the payer. The user reviews the exact request and signs with their wallet. Browser sign-only is supported for Cosmos wallets; do not promise it for every browser wallet.
+
+The browser wallet chooses fees. CLI fee and gas flags do not enforce browser fee ceilings. Surface this before a request where a fee cap matters. A policy requiring an enforced cap needs a compatible signing path.
+
+Before opening the wallet, summarize the purpose, network, signer, recipient payouts, and any recurring or delegated authority in the actual proposal. Identify wallet-selected fees separately. Use the existing authorization for the handoff; the wallet is where the human approves the signature. Do not ask for redundant chat confirmations when the user already requested this exact handoff.
+
+Keep the CLI process alive while the user signs. Use `--no-open` when the user needs the URL instead of a browser launch. The loopback callback must reach the machine running the CLI; opening the URL on an unrelated phone does not satisfy this. A submitted hash is not a confirmed transaction. Inspect `confirmed`, `verification`, `requestId`, and `retrySafe`, not just the outer envelope. On timeout or unknown outcome, reconcile against the chain before requesting another signature.
+
+Browser transaction requests are saved locally before dispatch. Use `bb dev requests list`, then `bb dev requests status <requestId>` from another terminal. `bb dev requests resume <requestId>` returns the same signing URL only while the original listener is active and the request is unexpired and incomplete. Keep that original CLI process alive. A lost listener or timeout is `unknown`, never permission to start a replacement payment. Saved callbacks are still unverified; reconcile a hash with `bb tx status` / `bb tx wait` on the original network. The MCP equivalents are `list_signing_requests` and `signing_request_status` (`requestId`, optional `resume: true`). Keep request files and links private.
 
 For SSH-tunneled dev (laptop browser, server-side CLI): pin a port with `--port 4849` and forward it via `ssh -L 4849:localhost:4849`.
 
@@ -121,7 +129,9 @@ bb deploy --gen-payload --msg-file tx.json --from 0x... --gas 600000
 bb deploy --gen-payload --msg-file tx.json --from bb1... --with-evm-tx --gas 600000
 ```
 
-Output is a self-contained JSON envelope: `signDirect.{bodyBytes, authInfoBytes, signBytes}`, `legacyAmino.{...}`, `evmTx.{to, data, value, chainId, gasLimit}`, plus pre-resolved chain id, account number, sequence, public key, fee, memo, and the broadcast endpoint URL. The caller signs the bytes locally and assembles a TxRaw to POST.
+Output is a self-contained JSON envelope: `signDirect.{bodyBytes, authInfoBytes, signBytes, hashAlgorithm, signDocBytes}`, `legacyAmino` with the same fields, `evmTx.{to, data, value, chainId, gasLimit}`, `sender.pubKeyType`, plus pre-resolved chain id, account number, sequence, public key, fee, memo, `instructions`, and the broadcast endpoint URL.
+
+`signBytes` is the digest of the sign doc (32 bytes, already hashed). The default pubkey `/cosmos.crypto.secp256k1.PubKey` uses SHA-256 (`hashAlgorithm: "sha256"`). keccak256 is used only for `/cosmos.evm.crypto.v1.ethsecp256k1.PubKey`. `--pubkey-type` sets that type: `secp256k1`, `ethsecp256k1`, or `eth_secp256k1` (type URLs are accepted). When the flag is omitted, a fetched indexer account `pubKeyType` is used, otherwise `secp256k1`. The flag wins over the indexer. `instructions` names the algorithm and says the 32 bytes are already hashed. Sign `signBytes` directly and assemble `TxRaw{bodyBytes, authInfoBytes, [signature]}` to POST. `signDocBytes` is the raw sign doc before that hash (protobuf `SignDoc` for direct, amino JSON for legacy), base64 in this CLI output. `--account-number 0` is accepted; `0` is a real account number. `bb gen-tx-payload` is the deprecated alias and takes the same flags. EIP-712, browser signing, and `GenericCosmosAdapter` do not read `signBytes`.
 
 For fresh accounts where the indexer doesn't have a public key yet, derive one with:
 
@@ -141,33 +151,33 @@ bb dev gen-pub-key --address bb1... --signature <base64>
 **Chain binary:**
 - "bb: command not found" — route to `/bitbadges:setup`.
 - "key not found" — list available keys, ask which to use.
-- "insufficient fees" / "out of gas" — let the binary auto-estimate (`--gas auto`) and retry, or have the user bump the cap.
+- Insufficient fees or out of gas: reconcile the attempt first, then re-estimate and check against the authorized fee cap before another submission.
 
 **Browser bridge:**
-- `ERR_CONNECTION_REFUSED` on the loopback redirect → SSH-tunneled dev, the random ephemeral port isn't reachable. Use `--port 4849` and forward it.
-- `Failed to upload sign payload: 401` → `BITBADGES_API_KEY_LOCAL` not set.
+- `ERR_CONNECTION_REFUSED` on the loopback redirect → the CLI listener may have stopped, the link may be expired, or the browser may be on a different machine. If the wallet was used, reconcile its transaction first. For a future SSH handoff, keep the CLI running and use `--port 4849` with a matching tunnel; do not immediately repeat a payment.
+- `Failed to upload sign payload: 401` → check the API key for the selected network without printing it.
 - "Wallet mismatch" warning → user's connected wallet doesn't match `--manager` / `--expected-address`. Click the inline Disconnect, switch wallets.
-- TxModal closes without afterTx firing → the post-broadcast poll likely failed; the bridge has a 1.5s grace fallback that returns to the terminal anyway. Tx may still have landed — confirm with `tx wait <hash>` or check the chain LCD.
+- Missing callback or unknown outcome → the transaction may already have been submitted. Confirm with `bb tx wait <hash>` when a hash is available, otherwise inspect wallet activity and chain state before requesting another signature.
 
 **Burner:**
 - "faucet refused" — non-local network without faucet enabled. Use `--fund manual` and prefund the burner address.
-- "insufficient balance" — sweep dust out via `bb burner sweep <selector> --to <real-address>`.
+- "insufficient balance" — check the required amount and authorized funding source. Sweeping funds out is a cleanup action and cannot fix insufficient balance; only sweep remaining funds after reconciling the attempted deployment.
 
 **`bb deploy --gen-payload`:**
 - "Missing public key" — fresh account; run `bb dev gen-pub-key` first or pass `--public-key` explicitly.
 - "Indexer fetch failed" — pass `--no-fetch` with explicit `--account-number`, `--sequence`, `--public-key`.
-- "Unsupported message type" — `bb deploy --gen-payload` covers every `tokenization.Msg*` type (the output of `bb build`). Other modules (IBC, gov, custom) need to be proto-encoded by the caller.
+- "Unsupported message type" — inspect the installed message schema and supported signing paths. Use native chain commands for modules that the SDK payload generator does not support.
 
 ## Hard don'ts
 
-- Don't broadcast to mainnet without explicit user confirmation in the same turn.
+- Do not execute outside the user's granted authority; a prior bounded delegation remains valid within its scope.
 - Don't broadcast a transaction that hasn't been simulated.
-- Don't loop a failing broadcast more than twice — stop and report rather than chewing through fees.
+- Do not blindly retry a broadcast or signing request. An unknown result may already have executed. Check the transaction hash and chain state first.
 - Don't ask the user for a mnemonic or signing material. The browser bridge captures pubkeys from the wallet's response. `bb dev gen-pub-key` recovers them from a signed canonical message. Neither path needs the user to expose anything.
-- Don't conflate the four paths. Picking the wrong one wastes time at best and wastes funds at worst.
+- Keep the signing paths distinct, especially browser fee selection, keyring execution, and create-only burner restrictions.
 
 ## Reference
 
-- Sign Bridge full reference: https://docs.bitbadges.io/for-developers/cli/sign-bridge.html
-- Auth Commands: https://docs.bitbadges.io/for-developers/cli/auth-commands.html
-- Deploy Commands: https://docs.bitbadges.io/for-developers/cli/deploy-commands.html
+- Main-wallet payment requests: https://docs.bitbadges.io/agents/main-wallet-payments
+- Auth Commands: https://docs.bitbadges.io/cli/auth
+- Deploy Commands: https://docs.bitbadges.io/cli/deploy

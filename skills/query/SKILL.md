@@ -1,5 +1,5 @@
 ---
-description: Query BitBadges collections, balances, accounts, claims, addresses, standards (auctions / payment-requests / intents / smart-tokens / ...), and any of the 106+ API routes. Discovers routes via --help-json instead of guessing.
+description: Query BitBadges collections, balances, accounts, claims, addresses, standards (auctions / payment-requests / intents / smart-tokens / ...), and any of the 106+ API routes. Discovers routes via bb api --search instead of guessing.
 ---
 
 # Query
@@ -8,30 +8,31 @@ Use this skill any time the user wants on-chain or off-chain BitBadges data — 
 
 ## Discovery first, then query
 
-LLMs frequently hallucinate route paths. The CLI exposes the full API tree as JSON — always discover, then query.
+LLMs frequently hallucinate route paths. The CLI lists every installed API route, so always discover, then query.
 
 ```bash
-bb api --help-json
-bb api <group> --help-json     # e.g. tokens, accounts, claims, addresses
+bb api --search <keyword>      # matching routes as a small JSON list, e.g. balance, claim, list
+bb api <group> --help          # every route in one group: tokens, accounts, claims, stores, ...
+bb api <group> <route> --help  # arguments and options for one route
 ```
 
-The `--help-json` output is the source of truth for routes and parameters. Read it before calling a route you're not 100% sure exists.
+The installed CLI is the source of truth for routes and parameters. Check it before calling a route you're not 100% sure exists. Avoid `--help-json` for route discovery: it prints the entire CLI command tree (hundreds of KB), even when you put a group name in front of it.
 
 ## Common queries
 
 | Need | Command |
 |---|---|
 | Collection details | `bb api tokens get-collection <id>` |
-| Balances for an address | `bb api tokens get-balance <collection-id> <address>` |
-| Account profile | `bb api accounts get-account <address>` |
+| Balances for an address | `bb api tokens get-balance-by-address <collection-id> <address>` |
+| Account profile | `bb account profile --address <address>` |
 | Claim status | `bb api claims get-claim <claim-id>` |
-| Address list contents | `bb api address-lists get-list <list-id>` |
+| Address list contents | Discover the installed address-list route with `bb api --search list`; do not infer a route from a standard name. |
 
 Or use the MCP fast-paths: `query_collection`, `query_balance`, `verify_ownership`.
 
 ## Standards shortcuts (preferred over raw API)
 
-For every BitBadges standard the CLI exposes a typed list / show / status surface that's friendlier than the raw indexer routes. Reach for these BEFORE `api ...` when the user asks about a standard by name:
+Use the standard-specific commands before raw API routes. Available verbs and filters differ by standard; inspect that command's help:
 
 ```bash
 bb auctions list                       # browse active auctions
@@ -39,16 +40,16 @@ bb auctions show 42                    # one auction
 bb auctions status 42                  # bidding | accepting | sold | expired
 
 bb pay-requests list --mine bb1...     # payment requests TO me
-bb intents list --pay-denom uusdc      # intent-exchange offers
+bb intents list --pay-denom ubadge    # intent-exchange offers using the native BADGE denom
 bb prediction-markets list --open      # active prediction markets
 bb credit-tokens show <id>             # one credit-token collection
 bb smart-tokens status <id>            # one smart token
-bb subscriptions status <id> <addr>    # subscription tier status
-bb swap assets / chains / balances     # cross-chain swap surface
+bb subscriptions status <id> --address <addr> # subscription tier status
+bb swap assets                        # discover cross-chain assets
 bb dynamic-stores list-values <id>     # on-chain key→bool map
 ```
 
-Every standard supports `--mine <addr>` (or equivalent) to scope to a specific user. Add `--testnet` / `--local` for non-mainnet. Output is structured JSON. The full surface lives at the docs Standards Commands reference.
+Use the address filter shown by the installed command; do not assume `--mine` exists everywhere. Add the supported `--testnet` / `--local` flag for non-mainnet queries. Output is structured JSON.
 
 ## Networks
 
@@ -58,9 +59,9 @@ Add `--testnet` to any command to hit testnet. Add `--local` for `http://localho
 
 - 401/403 — `BITBADGES_API_KEY` not set or wrong network. Route to `/bitbadges:setup`.
 - 404 on a collection ID — confirm the ID and network with the user (a testnet collection won't appear on mainnet).
-- Pagination — many routes paginate; check the response for `nextCursor` and ask the user if they want subsequent pages.
+- Pagination — follow the route's documented bookmark/cursor and `hasMore` fields. Preserve the same filters and network across pages; do not claim a complete result after reading only the first page.
 
 ## Don't
 
-- Don't invent route paths. If `--help-json` doesn't list it, it doesn't exist.
+- Don't invent route paths. If `bb api --search` and `bb api <group> --help` don't list it, it doesn't exist.
 - Don't dump full unfiltered API responses on the user — summarize, then offer the raw JSON if they want it.

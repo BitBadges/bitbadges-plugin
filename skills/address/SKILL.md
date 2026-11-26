@@ -13,14 +13,14 @@ bb account convert <address> --to <bb1|0x>
 bb account validate <address>
 ```
 
-`bb1...` ↔ `0x...` is deterministic — same key, two encodings. The CLI handles the bech32/hex math.
+`bb1...` ↔ `0x...` re-encodes the same address bytes. It does not prove that a wallet controls that address; key derivation and signing mode still matter. The CLI handles the encoding.
 
 ## Derived addresses
 
 | Need | Command |
 |---|---|
 | Backing address for an IBC denom (smart-token deposits) | `bb account alias for-ibc-backing <denom>` |
-| Wrapper address for a collection | `bb account alias for-wrapper <collection-id>` |
+| Wrapper address for a wrapped denom | `bb account alias for-wrapper <denom>` |
 | Mint-escrow address for a collection | `bb account alias for-mint-escrow <collection-id>` |
 
 These are protocol-controlled addresses with auto-set approvals. Don't try to write to them directly — use the corresponding flow (IBC backing, mint, etc.).
@@ -28,7 +28,7 @@ These are protocol-controlled addresses with auto-set approvals. Don't try to wr
 ## Failure modes
 
 - "Address is not bech32-valid" — likely a typo or wrong prefix; bb1 = BitBadges, cosmos1 = generic Cosmos.
-- "Collection doesn't exist" when deriving wrapper/mint-escrow — confirm the collection ID and network.
+- Derived addresses are computed locally. Derivation does not prove that a collection, backing pool, or wrapper exists; query its current state separately.
 
 ## Don't
 
