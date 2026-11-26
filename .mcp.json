@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "bitbadges-builder": {
-      "command": "npx",
-      "args": ["-y", "-p", "bitbadges", "bitbadges-builder"]
+      "command": "bitbadges-builder",
+      "args": []
     }
   }
 }

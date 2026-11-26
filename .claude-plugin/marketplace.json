@@ -10,10 +10,10 @@
       "name": "bitbadges",
       "source": "./",
       "description": "BitBadges builder skills for Claude Code. Auto-wires the bitbadges-builder MCP server and ships 8 workflow skills that route Claude to the right CLI / MCP / docs surface for token construction, review, simulation, and on-chain queries. Thin harness on top of the BitBadges chain binary + CLI — not a knowledge base.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "license": "CC-BY-NC-SA-4.0",
       "repository": "https://github.com/BitBadges/bitbadges-plugin",
-      "homepage": "https://docs.bitbadges.io/for-developers/ai-agents/claude-code-plugin",
+      "homepage": "https://docs.bitbadges.io/agents/claude-code-plugin",
       "author": {
         "name": "BitBadges",
         "email": "support@bitbadges.io",

@@ -8,17 +8,24 @@ A BitBadges "claim" is a redemption page where users (gated however the manager 
 
 ## Build
 
-Use the `build_claim` MCP tool with the desired plugins (gating modes) and approval target. There is no CLI builder for claims today — use the MCP tool path or compose the JSON directly.
+Discover the installed tool schema with `bb dev capabilities build_claim`, then call the claim builder through the CLI:
+
+```bash
+bb dev tools call build_claim --args-file claim-input.json
+```
+
+The optional MCP `build_claim` tool uses the same handler. This prepares an API document; it does not create the claim remotely. Required inputs are `claimType`, `name`, and a positive integer `maxUses`. Use the installed schema for optional action fields. Confirm any API write separately from building its proposal.
 
 ## Common gating modes (plugins)
 
-| Mode | Plugin id | Use when |
+| Mode | `claimType` | Use when |
 |---|---|---|
-| Whitelist (address list) | `whitelist` | Specific addresses pre-approved |
-| Password | `password` | Single shared secret |
-| Codes | `codes` | One-time-use codes (good for events) |
-| Open | (none) | Anyone can claim |
-| Token-gated | `must-own-tokens` | Holders of another collection only |
+| Whitelist (address list) | `whitelist-gated` | Specific addresses supplied in `whitelist` |
+| Password | `password-gated` | Shared value supplied in `password` |
+| Codes | `code-gated` | Generated one-time codes; optional `numCodes` |
+| Open | `open` | Anyone can claim, subject to usage limits |
+
+Token ownership requirements belong in the relevant approval or supported claim plugin configuration. `must-own-tokens` is not a supported `claimType`; load the claim/API instructions before composing custom gating.
 
 ## Audit existing
 
@@ -30,10 +37,10 @@ Then review for: overlapping plugins (e.g. password + open), expired time window
 
 ## Failure modes
 
-- Mismatched plugin ids — the CLI / MCP will reject; confirm against `bb api --help-json` if unsure.
+- Unsupported claim types — use the installed `build_claim` schema, not guessed plugin IDs.
 - Gating mode that doesn't compose with the chosen approval (e.g. open claim against a 1-use approval).
 
 ## Don't
 
-- Don't build a claim against an approval that doesn't exist yet — the approval has to be created first via the underlying token-creation skill.
+- A draft may be prepared before its collection exists. Before publishing, resolve real collection/approval identifiers and verify that the intended approval authorizes the claim action.
 - Don't share password/codes back to the user as plain log lines — call them out as sensitive.

@@ -16,7 +16,7 @@ Use when the user wants natural-language understanding rather than raw JSON.
 
 **Live collection (numeric ID):**
 
-Call the `explain_collection` MCP tool with `collectionId: "<id>"` and an `audience` of `user`, `developer`, or `auditor`. CLI fallback:
+Start with the CLI:
 
 ```bash
 bb explain <id>
@@ -28,7 +28,7 @@ bb explain <id>
 bb explain @<path>.json
 ```
 
-The CLI auto-detects whether the input is a transaction or a collection. The `--audience` selector currently only exists on the MCP tool path.
+The CLI auto-detects whether the input is a transaction or a collection. Adapt the explanation to the reader. If MCP is preferred, `explain_collection` accepts `collectionId` and an `audience` of `user`, `developer`, or `auditor`; there is no CLI `--audience` flag.
 
 ## Audience selection
 
